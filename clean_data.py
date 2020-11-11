@@ -18,6 +18,11 @@ def rm_ext_and_nan(CTG_features, extra_feature):
     """
     # ------------------ IMPLEMENT YOUR CODE HERE:------------------------------
 
+    c_ctg = {}
+
+    for feature in set(CTG_features.columns)-{extra_feature}:
+        c_ctg[feature] = CTG_features.loc[pd.to_numeric(CTG_features.loc[:, feature], errors='coerce').notnull(), feature]
+
     # --------------------------------------------------------------------------
     return c_ctg
 
@@ -30,7 +35,14 @@ def nan2num_samp(CTG_features, extra_feature):
     :return: A pandas dataframe of the dictionary c_cdf containing the "clean" features
     """
     c_cdf = {}
+
     # ------------------ IMPLEMENT YOUR CODE HERE:------------------------------
+
+    for feature in set(CTG_features.columns)-{extra_feature}:
+        tmp = pd.to_numeric(CTG_features.loc[:,feature], errors='coerce')
+        #tmp = CTG_features.loc[pd.to_numeric(CTG_features.loc[:,feature], errors='coerce').notnull(), feature]
+        tmp[tmp.isnull()] = np.random.choice(tmp[tmp.notnull()], size=np.shape(tmp.isnull()))
+        c_cdf[feature] = tmp
 
     # -------------------------------------------------------------------------
     return pd.DataFrame(c_cdf)
@@ -43,6 +55,16 @@ def sum_stat(c_feat):
     :return: Summary statistics as a dicionary of dictionaries (called d_summary) as explained in the notebook
     """
     # ------------------ IMPLEMENT YOUR CODE HERE:------------------------------
+    tmp = c_feat
+    d_summary = {}
+    sumst = tmp.describe()
+
+    for feature in c_feat.columns:
+        d_summary[feature] = {'min': sumst.loc['min', feature],
+                        'max': sumst.loc['max', feature], 'Q1': sumst.loc['25%', feature],
+                        'Q3': sumst.loc['75%', feature], 'mean': sumst.loc['mean', feature],
+                        'median': sumst.loc['50%', feature]}
+
 
     # -------------------------------------------------------------------------
     return d_summary
