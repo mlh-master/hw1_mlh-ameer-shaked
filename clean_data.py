@@ -70,7 +70,7 @@ def sum_stat(c_feat):
     return d_summary
 
 
-def rm_outlier(c_feat, d_summary):
+def rm_outlier(c_feat, d_summary):  #c_Feat is DATAFrame
     """
 
     :param c_feat: Output of nan2num_cdf
@@ -80,11 +80,20 @@ def rm_outlier(c_feat, d_summary):
     c_no_outlier = {}
     # ------------------ IMPLEMENT YOUR CODE HERE:------------------------------
 
+    for feat in c_feat:
+        interq = d_summary[feat]['Q3'] - d_summary[feat]['Q1']
+        up = (c_feat[feat] < (d_summary[feat]['Q3']+1.5*interq))
+        down = (c_feat[feat] > (d_summary[feat]['Q1']-1.5*interq))
+
+        criterion = up & down
+
+        c_no_outlier[feat] = c_feat.loc[criterion, feat]
+
     # -------------------------------------------------------------------------
     return pd.DataFrame(c_no_outlier)
 
 
-def phys_prior(c_cdf, feature, thresh):
+def phys_prior(c_cdf, feature, thresh):  #c_cdf = c_samp
     """
 
     :param c_cdf: Output of nan2num_cdf
@@ -93,7 +102,7 @@ def phys_prior(c_cdf, feature, thresh):
     :return: An array of the "filtered" feature called filt_feature
     """
     # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
-
+    filt_feature = c_cdf.loc[(c_cdf[feature]>thresh[0]) & (c_cdf[feature]<thresh[1]), feature]
     # -------------------------------------------------------------------------
     return filt_feature
 
