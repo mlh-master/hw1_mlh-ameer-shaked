@@ -104,7 +104,8 @@ def phys_prior(c_cdf, feature, thresh):  #c_cdf = c_samp
     # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
     filt_feature = c_cdf.loc[(c_cdf[feature]>thresh[0]) & (c_cdf[feature]<thresh[1]), feature]
     # -------------------------------------------------------------------------
-    return filt_feature
+    return filt_feature.to_numpy()
+
 
 
 def norm_standard(CTG_features, selected_feat=('LB', 'ASTV'), mode='none', flag=False):
@@ -118,6 +119,29 @@ def norm_standard(CTG_features, selected_feat=('LB', 'ASTV'), mode='none', flag=
     """
     x, y = selected_feat
     # ------------------ IMPLEMENT YOUR CODE HERE:------------------------------
+
+    nsd_res = {'MinMax': (CTG_features-CTG_features.min())/(CTG_features.max()-CTG_features.min()),
+        'mean': (CTG_features-CTG_features.mean())/(CTG_features.max()-CTG_features.min()),
+        'standard': (CTG_features-CTG_features.mean())/(CTG_features.std()),
+        'none': CTG_features}[mode]
+
+    if flag:
+        fig, axs = plt.subplots(2, 2)
+        plt.subplots_adjust(hspace=0.7)
+        plt.suptitle('Standardization Mode: ' + mode)
+
+        axs[0, 0].hist(nsd_res[selected_feat[0]], bins=30)
+        axs[0, 1].hist(CTG_features[selected_feat[0]], bins=30)
+        axs[0, 0].set_title(selected_feat[0] + ' stand')
+        axs[0, 1].set_title(selected_feat[0] + ' origin')
+        #axs[0,0].legend(['standardized','original'], loc='upper right')
+
+        axs[1, 0].hist(nsd_res[selected_feat[1]], bins=30)
+        axs[1, 1].hist(CTG_features[selected_feat[1]], bins=30)
+        axs[1, 0].set_title(selected_feat[1] + ' stand')
+        axs[1, 1].set_title(selected_feat[1] + ' origin')
+        #axs[1,0].legend(['standardized','original'], loc='upper right')
+
 
     # -------------------------------------------------------------------------
     return pd.DataFrame(nsd_res)
