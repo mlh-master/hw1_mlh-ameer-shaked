@@ -16,9 +16,12 @@ def pred_log(logreg, X_train, y_train, X_test, flag=False):
     :param y_train: Training set labels 
     :param X_test: Testing set samples
     :param flag: A boolean determining whether to return the predicted he probabilities of the classes (relevant after Q11)
-    :return: A two elements tuple containing the predictions and the weightning matrix
+    :return: A two elements tuple containing the predictions and the weight matrix
     """
     # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
+    logreg.fit(X_train, y_train)
+    w_log = np.column_stack( (logreg.intercept_, logreg.coef_) )
+    y_pred_log = logreg.predict(X_test)
 
     # -------------------------------------------------------------------------
     return y_pred_log, w_log
@@ -98,7 +101,12 @@ def odds_ratio(w, X, selected_feat='LB'):
              odds_ratio: the odds ratio of the selected feature and label
     """
     # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
-
+    label = 1 #normal
+    relevant_x = np.array(X[selected_feat])
+    relevant_w = w[:, np.where(X.columns == selected_feat)[0][0]]
+    wtx = np.matmul(relevant_w.reshape(len(relevant_w), 1), relevant_x.reshape(len(relevant_x), 1).T)
+    sigwtx = 1 / (1 + np.exp(-wtx) )
+    odds =
     # --------------------------------------------------------------------------
 
     return odds, odd_ratio
