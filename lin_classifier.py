@@ -21,7 +21,10 @@ def pred_log(logreg, X_train, y_train, X_test, flag=False):
     # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
     logreg.fit(X_train, y_train)
     w_log = np.column_stack( (logreg.intercept_, logreg.coef_) )
-    y_pred_log = logreg.predict(X_test)
+    if flag:
+        y_pred_log = logreg.predict_proba(X_test)
+    else:
+        y_pred_log = logreg.predict(X_test)
 
     # -------------------------------------------------------------------------
     return y_pred_log, w_log
@@ -76,6 +79,20 @@ def cv_kfold(X, y, C, penalty, K, mode):
     :param mode: Mode of normalization (parameter of norm_standard function in clean_data module)
     :return: A dictionary as explained in the notebook
     """
+#   kf = SKFold(n_splits=K)
+#   validation_dict = []
+#   for c in C:
+#       for p in penalty:
+#           logreg = LogisticRegression(solver='saga', penalty=p, C=c, max_iter=10000, multi_class='ovr')
+#           loss_val_vec = np.zeros(K)
+#           k = 0
+#           for train_idx, val_idx in kf.split(X, y):
+#               x_train, x_val = X.iloc[train_idx], X.iloc[val_idx]
+#       # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
+#
+#       # --------------------------------------------------------------------------
+#    return validation_dict
+
     kf = SKFold(n_splits=K)
     validation_dict = []
     for c in C:
@@ -86,9 +103,15 @@ def cv_kfold(X, y, C, penalty, K, mode):
             for train_idx, val_idx in kf.split(X, y):
                 x_train, x_val = X.iloc[train_idx], X.iloc[val_idx]
         # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
-
+                x_train_norm = nsd(x_train, mode=mode)
+                x_val_norm = nsd(x_val, mode=mode)
+                y_val_prob_pred, w = pred_log(logreg, x_train_norm, y[train_idx], x_val_norm, flag=True)
+                loss_val_vec[k] = log_loss(y[val_idx], y_val_prob_pred)
+                k+=1
+            validation_dict.append({'C':c, 'penalty':p, 'mu':loss_val_vec.mean(), 'sigma':loss_val_vec.std()})
         # --------------------------------------------------------------------------
     return validation_dict
+
 
 
 def odds_ratio(w, X, selected_feat='LB'):
@@ -102,11 +125,18 @@ def odds_ratio(w, X, selected_feat='LB'):
     """
     # ------------------ IMPLEMENT YOUR CODE HERE:-----------------------------
     label = 1 #normal
-    relevant_x = np.array(X[selected_feat])
-    relevant_w = w[:, np.where(X.columns == selected_feat)[0][0]]
-    wtx = np.matmul(relevant_w.reshape(len(relevant_w), 1), relevant_x.reshape(len(relevant_x), 1).T)
-    sigwtx = 1 / (1 + np.exp(-wtx) )
-    odds =
+    n, m = X.shape
+    X0 = np.ones((n, 1))
+    X_extended = np.hstack((X0, X))
+    w_normal = w[label-1, :]
+
+
+    wtx = X_extended@w_normal
+    odds = np.median(np.exp(wtx))
+
+
+    relevant_w = w[label-1, np.where(X.columns == selected_feat)[0][0]+1]
+    odds_ratio = np.exp(relevant_w)
     # --------------------------------------------------------------------------
 
-    return odds, odd_ratio
+    return odds, odds_ratio
